@@ -17,4 +17,4 @@ Contract config comes from `.env.local`, written by `../contracts/deploy.sh` (se
 | `/[handle]/qr` | Printable QR card |
 | `/dashboard` | Totals and recent tips |
 
-Brand assets: `public/brand/` (SVG + PNG). The tip wall reads `tip` events from RPC, which only keeps about a week.
+Brand assets: `public/brand/` (SVG + PNG). The tip wall reads full history from `/api/tips`, backed by the Postgres indexer in [`../indexer`](../indexer/README.md) (set `DATABASE_URL`). Without it, the wall falls back to RPC events, which only keep about a week.

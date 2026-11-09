@@ -12,8 +12,28 @@ export interface TipEvent {
 const sym = (v: string) => nativeToScVal(v, { type: "symbol" }).toXDR("base64");
 const str = (v: string) => nativeToScVal(v, { type: "string" }).toXDR("base64");
 
-// RPC retains roughly a week of events; older tips need an indexer.
-export async function getTipEvents(handle?: string): Promise<TipEvent[]> {
+// Full history comes from the indexer API (see ../../indexer). If the API is
+// unavailable we fall back to RPC, which only retains roughly a week of events.
+export async function getTipEvents(handle?: string, limit = 50): Promise<TipEvent[]> {
+  try {
+    return await getTipEventsFromApi(handle, limit);
+  } catch {
+    return getTipEventsFromRpc(handle);
+  }
+}
+
+async function getTipEventsFromApi(handle: string | undefined, limit: number): Promise<TipEvent[]> {
+  const qs = new URLSearchParams({ limit: String(limit) });
+  if (handle) qs.set("handle", handle);
+  const res = await fetch(`/api/tips?${qs}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Tips API ${res.status}`);
+  const body = (await res.json()) as {
+    tips: { id: string; from: string; amount: string; message: string; at: string }[];
+  };
+  return body.tips.map((t) => ({ ...t, amount: BigInt(t.amount) }));
+}
+
+async function getTipEventsFromRpc(handle?: string): Promise<TipEvent[]> {
   if (!isConfigured) return [];
   const latest = await server.getLatestLedger();
 
