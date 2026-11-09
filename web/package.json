@@ -10,7 +10,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@stellar/freighter-api": "^6.0.1",
+    "@creit.tech/stellar-wallets-kit": "^2.8.0",
     "@stellar/stellar-sdk": "^11.3.0",
     "clsx": "^2.0.0",
     "geist": "^1.9.1",

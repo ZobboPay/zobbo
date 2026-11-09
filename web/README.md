@@ -1,6 +1,6 @@
 # Zobbo web
 
-Next.js 14 (App Router) + Tailwind. Wallet: Freighter. Chain access: `@stellar/stellar-sdk`.
+Next.js 14 (App Router) + Tailwind. Wallets: Freighter, xBull, Lobstr and more via `@creit.tech/stellar-wallets-kit`. Chain access: `@stellar/stellar-sdk`.
 
 ```bash
 npm install
