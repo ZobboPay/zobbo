@@ -14,28 +14,37 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [address, setAddress] = useState<string | null>(null);
 
+  // Restore the last used wallet (the kit persists it in localStorage).
   useEffect(() => {
     (async () => {
       try {
-        const freighter = await import("@stellar/freighter-api");
-        const res = await freighter.getAddress();
-        if (res.address && !res.error) setAddress(res.address);
+        const { getKit } = await import("./kit");
+        const { address } = await getKit().getAddress();
+        if (address) setAddress(address);
       } catch {}
     })();
   }, []);
 
   const connect = async () => {
-    const freighter = await import("@stellar/freighter-api");
-    const res = await freighter.requestAccess();
-    if (res.error || !res.address) {
-      throw new Error(
-        "Could not connect. Install Freighter and switch it to Testnet."
-      );
+    try {
+      const { getKit } = await import("./kit");
+      const { address } = await getKit().authModal();
+      setAddress(address);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      if (/closed|cancel|reject|denied/i.test(msg) || !msg) {
+        throw new Error("Wallet connection was cancelled.");
+      }
+      throw new Error(`Could not connect: ${msg}`);
     }
-    setAddress(res.address);
   };
 
-  const disconnect = () => setAddress(null);
+  const disconnect = () => {
+    setAddress(null);
+    import("./kit")
+      .then(({ getKit }) => getKit().disconnect())
+      .catch(() => {});
+  };
 
   return (
     <WalletContext.Provider

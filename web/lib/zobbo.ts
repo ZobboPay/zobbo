@@ -59,7 +59,7 @@ async function invoke(
   method: string,
   args: xdr.ScVal[]
 ): Promise<string> {
-  const freighter = await import("@stellar/freighter-api");
+  const { getKit } = await import("./kit");
   const account = await server.getAccount(signer);
 
   let tx = new TransactionBuilder(account, {
@@ -72,11 +72,10 @@ async function invoke(
 
   tx = await server.prepareTransaction(tx);
 
-  const signed = await freighter.signTransaction(tx.toXDR(), {
+  const signed = await getKit().signTransaction(tx.toXDR(), {
     networkPassphrase: PASSPHRASE,
     address: signer,
   });
-  if (signed.error) throw new Error(String(signed.error));
 
   const signedTx = TransactionBuilder.fromXDR(signed.signedTxXdr, PASSPHRASE);
   const sent = await server.sendTransaction(signedTx);
